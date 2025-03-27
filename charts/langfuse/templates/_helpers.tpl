@@ -155,9 +155,9 @@ Get value of a specific environment variable from additionalEnv if it exists
     Compare with https://langfuse.com/self-hosting/configuration#environment-variables
 */}}
 {{- define "langfuse.databaseEnv" -}}
-{{- with (include "langfuse.getEnvVar" (dict "env" .Values.langfuse.additionalEnv "name" "DATABASE_URL")) -}}
+{{- with (include "langfuse.getValueOrSecret" (dict "key" "langfuse.databaseUrl" "value" .Values.langfuse.databaseUrl)) -}}
 - name: DATABASE_URL
-  value: {{ . | quote }}
+  {{- . | nindent 2 }}
 {{- else -}}
 - name: DATABASE_HOST
   value: {{ include "langfuse.postgresql.hostname" . | quote }}
