@@ -151,11 +151,30 @@ Get value of a specific environment variable from additionalEnv if it exists
 {{- end -}}
 
 {{/*
+Get value of a specific environment variable from additionalEnv with support for secretKeyRef
+*/}}
+{{- define "langfuse.getEnvVarWithSecret" -}}
+{{- $envVarName := .name -}}
+{{- range .env -}}
+{{- if eq .name $envVarName -}}
+{{- if .valueFrom -}}
+valueFrom:
+  secretKeyRef:
+    name: {{ .valueFrom.secretKeyRef.name }}
+    key: {{ .valueFrom.secretKeyRef.key }}
+{{- else -}}
+value: {{ .value | quote }}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
     Database related configurations by environment variables
     Compare with https://langfuse.com/self-hosting/configuration#environment-variables
 */}}
 {{- define "langfuse.databaseEnv" -}}
-{{- with (include "langfuse.getValueOrSecret" (dict "key" "langfuse.databaseUrl" "value" .Values.langfuse.databaseUrl)) -}}
+{{- with (include "langfuse.getEnvVarWithSecret" (dict "env" .Values.langfuse.additionalEnv "name" "DATABASE_URL")) -}}
 - name: DATABASE_URL
   {{- . | nindent 2 }}
 {{- else -}}
